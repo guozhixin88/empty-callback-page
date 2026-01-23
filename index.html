@@ -1,4 +1,15 @@
 <!DOCTYPE html>
+<!--
+飞书授权回调页面
+
+此页面代码存储在GitHub仓库：https://github.com/guozhixin88/empty-callback-page
+对应回调地址：https://guozhixin88.github.io/empty-callback-page/
+
+功能说明：
+1. 处理飞书授权成功后的回调
+2. 将授权信息传递给插件
+3. 显示授权结果给用户
+-->
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -85,9 +96,6 @@
     </div>
     
     <script>
-        // 插件ID
-        const extensionId = 'eppfkgblnehbmjodikhhcobnkgngafnf';
-        
         // 更新页面状态
         function updateStatus(status, message) {
             const container = document.getElementById('container');
@@ -127,30 +135,8 @@
                 const hashParams = new URLSearchParams(window.location.hash.substring(1));
                 const accessToken = hashParams.get('access_token');
                 
-                if (code) {
-                    // 授权码模式：将code发送给后台脚本处理
-                    const response = await new Promise((resolve) => {
-                        // 检查chrome.runtime是否可用
-                        if (typeof chrome === 'undefined' || !chrome.runtime) {
-                            resolve({ success: false, error: '插件未安装或无法访问' });
-                            return;
-                        }
-                        
-                        chrome.runtime.sendMessage(extensionId, {
-                            action: 'HANDLE_FEISHU_AUTH_CALLBACK',
-                            code: code
-                        }, (response) => {
-                            resolve(response || { success: false, error: '未收到插件响应' });
-                        });
-                    });
-                    
-                    if (response && response.success) {
-                        updateStatus('success', '授权成功，您可以关闭此页面并开始使用插件。');
-                    } else {
-                        updateStatus('error', `授权失败: ${response.error || '未知错误'}`);
-                    }
-                } else if (accessToken) {
-                    // 隐式授权模式：插件会通过chrome.tabs.onUpdated监听器自动处理
+                if (code || accessToken) {
+                    // 授权码模式或隐式授权模式：插件会通过chrome.tabs.onUpdated监听器自动处理
                     // 这里只需要显示成功信息
                     updateStatus('success', '授权成功，插件已自动处理授权信息，您可以关闭此页面。');
                 } else {
